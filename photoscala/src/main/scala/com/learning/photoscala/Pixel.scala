@@ -44,6 +44,13 @@ object Pixel {
     else v
   }
 
+  def fromHex(color: Int): Pixel =
+    Pixel(
+      (color & 0xFF0000) >> 16,
+      (color & 0xFF00) >> 8,
+      color & 0xFF
+    )
+
   def main(args: Array[String]): Unit = {
     val red = Pixel(255, 0, 0)
     val green = Pixel(0, 255, 0)
