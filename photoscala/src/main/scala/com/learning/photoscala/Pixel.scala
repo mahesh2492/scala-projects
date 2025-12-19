@@ -31,21 +31,26 @@ case class Pixel(red: Int, green: Int, blue: Int) {
 object Pixel {
 
   val BLACK = Pixel(0, 0, 0)
-  val white = Pixel(255, 255, 255)
+  val WHITE = Pixel(255, 255, 255)
   val RED = Pixel(255, 0, 0)
   val GREEN = Pixel(0, 255, 0)
   val BLUE = Pixel(0, 0, 255)
   val GREY = Pixel(128, 128, 128)
 
   //clamps a value between 0-255
-  def clamp(v: Int): Int =
-    if v <= 0 then 0
-    else if v > 255 then 255
+  def clamp(v: Int): Int = {
+    if(v <= 0) 0
+    else if (v > 255) 255
     else v
+  }
 
   def main(args: Array[String]): Unit = {
     val red = Pixel(255, 0, 0)
-    val yellow = Pixel(255, 255, 0)
-    yellow.draw(40, 40, "photoscala/src/main/resources/pixels/yellow.jpg")
+    val green = Pixel(0, 255, 0)
+    val yellow = red + green
+    val pink = new Transparency(0.5).combine(RED, WHITE)
+    val darkRed = (new Multiply).combine(RED, GREY)
+    val lightPink = (new Screen).combine(RED, GREY)
+    lightPink.draw(40, 40, "photoscala/src/main/resources/pixels/lightPink.jpg")
   }
 }
