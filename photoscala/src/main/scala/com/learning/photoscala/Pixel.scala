@@ -56,8 +56,8 @@ object Pixel {
     val green = Pixel(0, 255, 0)
     val yellow = red + green
     val pink = new Transparency(0.5).combine(RED, WHITE)
-    val darkRed = (new Multiply).combine(RED, GREY)
-    val lightPink = (new Screen).combine(RED, GREY)
+    val darkRed = Multiply.combine(RED, GREY)
+    val lightPink = Screen.combine(RED, GREY)
     lightPink.draw(40, 40, "photoscala/src/main/resources/pixels/lightPink.jpg")
   }
 }
