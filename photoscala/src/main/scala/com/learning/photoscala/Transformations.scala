@@ -1,5 +1,7 @@
 package com.learning.photoscala
 
+import scala.annotation.targetName
+
 trait Transformations {
   def apply(image: Image): Image
 }
@@ -19,7 +21,7 @@ case class Crop(x: Int, y: Int, w: Int, h: Int) extends Transformations {
 case object Grayscale extends Transformations {
   override def apply(image: Image): Image = {
     image.map { pixel =>
-      val avg = (pixel.red + pixel.green + pixel.blue) / 3
+      val avg = (pixel.r + pixel.g + pixel.b) / 3
       Pixel(avg, avg, avg)
     }
   }
@@ -29,9 +31,9 @@ case object Invert extends Transformations {
   override def apply(image: Image): Image = {
     image.map { pixel =>
       Pixel(
-        255 - pixel.red,
-        255 - pixel.green,
-        255 - pixel.blue
+        255 - pixel.r,
+        255 - pixel.g,
+        255 - pixel.b
       )
     }
   }
@@ -40,11 +42,11 @@ case object Invert extends Transformations {
 case class Colorize(color: Pixel) extends Transformations {
   override def apply(image: Image): Image = {
     image.map { pixel =>
-      val avg = (pixel.red + pixel.green + pixel.blue) / 3
+      val avg = (pixel.r + pixel.g + pixel.b) / 3
       Pixel(
-        (color.red   * (avg / 255.0)).toInt,
-        (color.green * (avg / 255.0)).toInt,
-        (color.blue  * (avg / 255.0)).toInt
+        (color.r   * (avg / 255.0)).toInt,
+        (color.g * (avg / 255.0)).toInt,
+        (color.b  * (avg / 255.0)).toInt
       )
 
     }
@@ -78,6 +80,93 @@ case class Blend(fgImage: Image, blendMode: BlendMode) extends Transformations {
   }
 }
 
+case class Window(width: Int, height: Int, pixels: List[Pixel])
+case class Kernel(width: Int, height: Int, values: List[Double]) {
+  def normalize(): Kernel = {
+    val sum = values.sum
+    if(sum == 0) this
+    else Kernel(width, height, values.map(_ / sum))
+  }
+
+  def multiply_v2(window: Window): Pixel = {
+    assert(this.width == window.width && this.height == window.height)
+
+    val (red, green, blue) = window.pixels
+      .zip(values)
+      .map {
+        case (Pixel(r, g, b), k) => (r * k, g * k, b * k)
+      }
+      .reduce {
+        case ((r1, g1, b1), (r2, g2, b2)) => (r1 + r2, g1 + g2, b1 + b2)
+      }
+    Pixel(red.toInt, green.toInt, blue.toInt)
+  }
+  @targetName("multiply")
+  infix def *(window: Window): Pixel = {
+    assert(this.width == window.width && this.height == window.height)
+    val red = window.pixels
+      .map(_.r)
+      .zip(values)
+      .map { case (r, k) => r * k }
+      .sum
+      .toInt
+
+    val green = window.pixels
+      .map(_.g)
+      .zip(values)
+      .map { case (g, k) => g * k }
+      .sum
+      .toInt
+
+    val blue = window.pixels
+      .map(_.b)
+      .zip(values)
+      .map { case (b, k) => b * k }
+      .sum
+      .toInt
+
+    Pixel(red, green, blue)
+  }
+}
+
+object Kernel {
+  val blur = Kernel(3, 3, List(
+    1.0, 2.0, 1.0,
+    2.0, 4.0, 2.0,
+    1.0, 2.0, 1.0
+  )).normalize()
+
+  val sharpen = Kernel(3, 3, List(
+    0.0, -1.0, 0.0,
+    -1.0, 5.0, -1.0,
+    0.0, -1.0,0.0
+  )).normalize()
+
+  val edge = Kernel(3, 3, List(
+    1.0, 0.0, -1.0,
+    2.0, 0.0, -2.0,
+    1.0, 0.0, -1.0
+  ))
+
+  val emboss = Kernel(3, 3, List(
+    -2.0, -1.0, 0.0,
+    -1.0, 1.0, 1.0,
+    0.0, 1.0, 2.0
+  ))
+
+}
+case class KernelFilter(kernel: Kernel) extends Transformations {
+  override def apply(image: Image): Image = {
+    val pixels = for {
+      y <- 0 until image.height
+      x <- 0 until image.width
+    } yield kernel * image.window(x, y, kernel.width, kernel.height)
+
+    Image(image.width, image.height, pixels.toArray)
+  }
+}
+
+
 object Transformations {
   def main(args: Array[String]): Unit = {
      val original = Image.loadResource("nebula.jpg")
@@ -96,5 +185,14 @@ object Transformations {
 
     val metalWorn = Blend(metal, Overlay)(nebula)
     metalWorn.saveResources("nebula_metal_worn_overlay.jpg")
+
+    val nebulablur = KernelFilter(Kernel.blur)(nebula)
+    nebulablur.saveResources("nebula_blur.jpg")
+
+    val nebulaSharpen = KernelFilter(Kernel.sharpen)(nebula)
+    nebulaSharpen.saveResources("nebula_sharpen.jpg")
+
+    val nebularEmboss = KernelFilter(Kernel.emboss)(nebula)
+    nebularEmboss.saveResources("nebula_emboss.jpg")
   }
 }

@@ -4,17 +4,19 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 
-case class Pixel(red: Int, green: Int, blue: Int) {
-  assert(red >= 0 && red < 256 && green >= 0 && green < 256 && blue >= 0 && blue < 256)
-
+case class Pixel(private val red: Int, private val green: Int, private val blue: Int) {
+  //assert(red >= 0 && red < 256 && green >= 0 && green < 256 && blue >= 0 && blue < 256)
+  val r = Pixel.clamp(red)
+  val g = Pixel.clamp(green)
+  val b = Pixel.clamp(blue)
   def toInt: Int =
-    (red << 16) | (green << 8) | blue
+    (r << 16) | (g << 8) | b
 
   infix def +(other: Pixel): Pixel =
     Pixel(
-      Pixel.clamp(red + other.red),
-      Pixel.clamp(green + other.green),
-      Pixel.clamp(blue + other.blue)
+      Pixel.clamp(r + other.r),
+      Pixel.clamp(g + other.g),
+      Pixel.clamp(b + other.b)
     )
 
 

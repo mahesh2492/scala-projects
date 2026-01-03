@@ -13,18 +13,18 @@ class Transparency(f: Double) extends BlendMode {
 
   override def combine(fg: Pixel, bg: Pixel): Pixel =
     Pixel(
-      (fg.red * factor + bg.red * (1 - factor)).toInt,
-      (fg.green * factor + bg.green * (1 - factor)).toInt,
-      (fg.blue * factor + bg.blue * (1 - factor)).toInt
+      (fg.r * factor + bg.r * (1 - factor)).toInt,
+      (fg.g * factor + bg.g * (1 - factor)).toInt,
+      (fg.b * factor + bg.b * (1 - factor)).toInt
     )
 }
 
 object Multiply extends BlendMode {
   override def combine(fg: Pixel, bg: Pixel): Pixel = {
     Pixel(
-      (fg.red * bg.red / 255.0).toInt,
-      (fg.green * bg.green / 255.0).toInt,
-      (fg.blue * bg.blue / 255.0).toInt
+      (fg.r * bg.r / 255.0).toInt,
+      (fg.g * bg.g / 255.0).toInt,
+      (fg.b * bg.b / 255.0).toInt
     )
   }
 }
@@ -32,9 +32,9 @@ object Multiply extends BlendMode {
 object Screen extends BlendMode {
   override def combine(fg: Pixel, bg: Pixel): Pixel = {
     Pixel(
-      (255 - (255 - fg.red) * (255 - bg.red) / 255.0).toInt,
-      (255 - (255 - fg.green) * (255 - bg.green) / 255.0).toInt,
-      (255 - (255 - fg.blue) * (255 - bg.blue) / 255.0).toInt
+      (255 - (255 - fg.r) * (255 - bg.r) / 255.0).toInt,
+      (255 - (255 - fg.g) * (255 - bg.g) / 255.0).toInt,
+      (255 - (255 - fg.b) * (255 - bg.b) / 255.0).toInt
     )
   }
 }
@@ -47,8 +47,8 @@ object Overlay extends BlendMode {
   }
   override def combine(fg: Pixel, bg: Pixel): Pixel =
     Pixel(
-      (255 * f(bg.red / 255.0, fg.red / 255.0)).toInt,
-      (255 * f(bg.green / 255.0, fg.green / 255.0)).toInt,
-      (255 * f(bg.blue / 255.0, fg.blue / 255.0)).toInt
+      (255 * f(bg.r / 255.0, fg.r / 255.0)).toInt,
+      (255 * f(bg.g / 255.0, fg.g / 255.0)).toInt,
+      (255 * f(bg.b / 255.0, fg.b / 255.0)).toInt
     )
 }

@@ -47,9 +47,39 @@ class Image private (private val bufferedImage: BufferedImage){
       newBufferedImage.setRGB(0, 0, width, height, newPixels, 0, width)
       new Image(newBufferedImage)
    }
+
+   //case class Window(width: Int, height: Int, pixels: List[Pixel])
+   def window(x: Int, y: Int, width: Int, height: Int): Window = {
+      val offsetX = (width - 1) / 2
+      val offsetY = (height - 1) / 2
+      val horizontalCords = ((x - offsetX) to (x + offsetX))
+        .map { v =>
+          if(v < 0) 0
+          else if(v >= this.width) this.width - 1
+          else v
+        }
+      val verticalCords = ((y - offsetY) to (y + offsetY))
+        .map { v =>
+           if(v < 0) 0
+           else if(v >= this.height) this.height - 1
+           else v
+        }
+
+      val pixels = for {
+         xp <- horizontalCords
+         yp <- verticalCords
+      } yield getColor(xp, yp)
+
+      Window(width, height, pixels.toList)
+   }
 }
 
 object Image {
+   def apply(width: Int, height: Int, pixels: Array[Pixel]): Image = {
+      val newBufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+      newBufferedImage.setRGB(0, 0, width, height, pixels.map(_.toInt), 0, width)
+      new Image(newBufferedImage)
+   }
    def black(width: Int, height: Int): Image = {
       val color = Array.fill(width * height)(0)
       val bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
